@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace EmuTester
@@ -12,12 +13,14 @@ namespace EmuTester
     {
         static void Main(string[] args)
         {
-            CalcluateCheckSum(",1,INIT,1,1,G,");
-            return;
+            //CalcluateCheckSum(",1,INIT,1,1,G,");
+            //Parse();
+            //return;
             var msg = ASCIIEncoding.ASCII.GetBytes("Hello Host");
             byte[] respnose = new byte[1024];
             TcpClient client = new TcpClient();
-            client.Connect("DESKTOP-REVDIF4", 50001);
+            //client.ReceiveTimeout = 600000;
+            client.Connect("localhost", 50100);
             Console.WriteLine("Control software connected");
 
             Stream s = client.GetStream();
@@ -38,27 +41,75 @@ namespace EmuTester
             //    Thread.Sleep(2000);
             //}
 
-            StringBuilder initCommandStr = new StringBuilder(string.Empty);
-            initCommandStr.Append('$');
-            initCommandStr.Append('1');
-            initCommandStr.Append("01");
-            initCommandStr.Append('0');
-            initCommandStr.Append('0');
-            initCommandStr.Append('G');
-            initCommandStr.Append('0');
-            initCommandStr.Append('\r');
+            string cmdStr1 = "$,1,INIT,1,1,G,16\r";
+            var key = ConsoleKey.Enter;
+            var chars1 = cmdStr1.ToString().ToCharArray();
+            //sw.Write(cmdStr);
+            string cmdStr2 = "$,1,INIT,1,1,A,10\r";
+            string cmdStr3 = "$,1,INIT,1,1,N,1D\r";
 
-            sw.WriteLine(initCommandStr);
+            var chars2 = cmdStr2.ToString().ToCharArray();
+            var chars3 = cmdStr3.ToString().ToCharArray();
 
+            foreach (char c in chars1)
+            {
+                sw.Write(c);
+                //sw.Flush();
+                Thread.Sleep(100);
+            }
+            //sw.WriteLine(cmdStr1);
             var response = sr.ReadLine();
+            while (string.IsNullOrEmpty(response))
+            {
+                response = sr.ReadLine();
+            }
             Console.WriteLine($"Received Init Response : {response}");
-            Console.WriteLine("Press return key to exit");
+
+            foreach (char c in chars2)
+            {
+                sw.Write(c);
+                //sw.Flush();
+                Thread.Sleep(100);
+            }
+            //sw.WriteLine(cmdStr2);
+            var response2 = sr.ReadLine();
+
+            while(string.IsNullOrEmpty(response2))
+            {
+                response2 = sr.ReadLine();
+            }
+            Console.WriteLine($"Received Init Response : {response2}");
+
+            foreach (char c in chars3)
+            {
+                sw.Write(c);
+                //sw.Flush();
+                Thread.Sleep(100);
+            }
+            //sw.WriteLine(cmdStr3);
+            var response3 = sr.ReadLine();
+
+            while (string.IsNullOrEmpty(response3))
+            {
+                response3 = sr.ReadLine();
+            }
+            Console.WriteLine($"Received Init Response : {response3}");
+
+            Console.WriteLine("Press return to Send again or other to quit");
             Console.ReadLine();
         }
 
+        static void Parse()
+        {
+            string message = "$,1,INIT,1,1,G,16\r";
+            var strippeedCmd = message.Substring(2, message.Length - 5);
+            var fields = strippeedCmd.Split(',');
+            int unitNumber = Convert.ToInt32(fields[0]);
+            string commandName = fields[1];
+        }
         static void CalcluateCheckSum(string unicodeMsg)
         {
-            unicodeMsg = ",1,INIT,1,1,G,";
+            unicodeMsg = ",1,INIT,1,1,N,";
             byte[] asciiBytes = ASCIIEncoding.ASCII.GetBytes(unicodeMsg);
             //var hexString = BitConverter.ToString(asciiBytes);
             int count = 0;
@@ -85,7 +136,6 @@ namespace EmuTester
             var stsStr = sts.ToString("X");
             var hexsts1 = BitConverter.ToString(new byte[] { (byte)sts });//Getting the Hex Value
             var asciiSts1 = ASCIIEncoding.ASCII.GetBytes(hexsts1.ToCharArray(), 1, 1);
-
 
             //var temp = ASCIIEncoding.ASCII.GetString(new byte[] {sts});
 
