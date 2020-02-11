@@ -11,96 +11,97 @@ namespace EmuTester
 {
     class Program
     {
+        
         static void Main(string[] args)
         {
             //CalcluateCheckSum(",1,INIT,1,1,G,");
             //Parse();
             //return;
-            var msg = ASCIIEncoding.ASCII.GetBytes("Hello Host");
-            byte[] respnose = new byte[1024];
-            TcpClient client = new TcpClient();
-            //client.ReceiveTimeout = 600000;
-            client.Connect("localhost", 50100);
-            Console.WriteLine("Control software connected");
+            Console.WriteLine("Emulator-Tester Started");
+            //TcpClient client = new TcpClient();
+            //client.Connect("localhost", 50100);
 
-            Stream s = client.GetStream();
-            StreamReader sr = new StreamReader(s, Encoding.ASCII);
-            StreamWriter sw = new StreamWriter(s, Encoding.ASCII);
-            sw.AutoFlush = true;
+            //Stream s = client.GetStream();
+            //StreamReader sr = new StreamReader(s, Encoding.ASCII);
+            //StreamWriter sw = new StreamWriter(s, Encoding.ASCII);
+            //sw.AutoFlush = true;
 
-            //Random rnd = new Random();
+            ConnectionWoker loop = new ConnectionWoker();
+            loop.Start();
 
-            //for (int j = 0; j < 10; j++)
-            //{
-            //    for (int i = 0; i < 10; i++)
-            //    {
-            //        char randomChar = (char)rnd.Next('a', 'z');
-            //        sw.Write(randomChar);
-            //    }
-            //    sw.Flush();
-            //    Thread.Sleep(2000);
-            //}
+            ScriptINIT testINIT = new ScriptINIT(loop);
+            testINIT.Execute("$,1,INIT,1,1,G,16\r");
+            testINIT.Execute("$,1,INIT,1,1,A,10\r");
+            testINIT.Execute("$,1,INIT,1,1,N,1D\r");
+
 
             string cmdStr1 = "$,1,INIT,1,1,G,16\r";
-            var key = ConsoleKey.Enter;
-            var chars1 = cmdStr1.ToString().ToCharArray();
-            //sw.Write(cmdStr);
             string cmdStr2 = "$,1,INIT,1,1,A,10\r";
             string cmdStr3 = "$,1,INIT,1,1,N,1D\r";
 
+            //loop.Write(cmdStr1);
+            //Thread.Sleep(10000);
+            //loop.Write(cmdStr2);
+            //Thread.Sleep(10000);
+            //loop.Write(cmdStr3);
+            //Thread.Sleep(10000);
+
+            var chars1 = cmdStr1.ToString().ToCharArray();
             var chars2 = cmdStr2.ToString().ToCharArray();
             var chars3 = cmdStr3.ToString().ToCharArray();
 
-            foreach (char c in chars1)
-            {
-                sw.Write(c);
-                //sw.Flush();
-                Thread.Sleep(100);
-            }
-            //sw.WriteLine(cmdStr1);
-            var response = sr.ReadLine();
-            while (string.IsNullOrEmpty(response))
-            {
-                response = sr.ReadLine();
-            }
-            Console.WriteLine($"Received Init Response : {response}");
+            //foreach (char c in chars1)
+            //{
+            //    sw.Write(c);
+            //    //sw.Flush();
+            //    Thread.Sleep(100);
+            //}
+            ////sw.WriteLine(cmdStr1);
+            //var response = sr.ReadLine();
+            //while (string.IsNullOrEmpty(response))
+            //{
+            //    response = sr.ReadLine();
+            //}
+            //Console.WriteLine($"Received Init Response : {response}");
 
-            foreach (char c in chars2)
-            {
-                sw.Write(c);
-                //sw.Flush();
-                Thread.Sleep(100);
-            }
-            //sw.WriteLine(cmdStr2);
-            var response2 = sr.ReadLine();
+            //foreach (char c in chars2)
+            //{
+            //    sw.Write(c);
+            //    //sw.Flush();
+            //    Thread.Sleep(100);
+            //}
+            ////sw.WriteLine(cmdStr2);
+            //var response2 = sr.ReadLine();
 
-            while(string.IsNullOrEmpty(response2))
-            {
-                response2 = sr.ReadLine();
-            }
-            Console.WriteLine($"Received Init Response : {response2}");
+            //while(string.IsNullOrEmpty(response2))
+            //{
+            //    response2 = sr.ReadLine();
+            //}
+            //Console.WriteLine($"Received Init Response : {response2}");
 
-            foreach (char c in chars3)
-            {
-                sw.Write(c);
-                //sw.Flush();
-                Thread.Sleep(100);
-            }
-            //sw.WriteLine(cmdStr3);
-            var response3 = sr.ReadLine();
+            //foreach (char c in chars3)
+            //{
+            //    sw.Write(c);
+            //    //sw.Flush();
+            //    Thread.Sleep(100);
+            //}
+            ////sw.WriteLine(cmdStr3);
+            //var response3 = sr.ReadLine();
 
-            while (string.IsNullOrEmpty(response3))
-            {
-                response3 = sr.ReadLine();
-            }
-            Console.WriteLine($"Received Init Response : {response3}");
+            //while (string.IsNullOrEmpty(response3))
+            //{
+            //    response3 = sr.ReadLine();
+            //}
+            //Console.WriteLine($"Received Init Response : {response3}");
 
-            Console.WriteLine("Press return to Send again or other to quit");
+            //Console.WriteLine("Press return to Send again or other to quit");
             Console.ReadLine();
         }
 
         static void Parse()
         {
+            TimeSpan span = TimeSpan.FromMilliseconds(3);
+            var str = span.ToString("ffffff");
             string message = "$,1,INIT,1,1,G,16\r";
             var strippeedCmd = message.Substring(2, message.Length - 5);
             var fields = strippeedCmd.Split(',');
@@ -109,7 +110,9 @@ namespace EmuTester
         }
         static void CalcluateCheckSum(string unicodeMsg)
         {
-            unicodeMsg = ",1,INIT,1,1,N,";
+            //unicodeMsg = ",1,INIT,1,1,N,";
+            unicodeMsg = ",1,ACKN,";
+
             byte[] asciiBytes = ASCIIEncoding.ASCII.GetBytes(unicodeMsg);
             //var hexString = BitConverter.ToString(asciiBytes);
             int count = 0;
