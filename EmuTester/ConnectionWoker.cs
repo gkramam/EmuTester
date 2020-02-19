@@ -21,10 +21,10 @@ namespace EmuTester
         ManualResetEvent singalToProcess = new ManualResetEvent(false);
         ManualResetEvent signalToWrite = new ManualResetEvent(false);
 
-        public ConnectionWoker() {
+        public ConnectionWoker(int port) {
 
             client = new TcpClient();
-            client.Connect("localhost", 50100);
+            client.Connect("localhost", port);
 
         }
 
@@ -83,7 +83,7 @@ namespace EmuTester
                         {
                             sw.Write(c);
                             //sw.Flush();
-                            Thread.Sleep(100);
+                            Thread.Sleep(5);//100 was working without task
                         }
 
                         if (writeQ.Count == 0)
@@ -95,7 +95,8 @@ namespace EmuTester
 
         public void Write(string message,Action postWriteCallback)
         {
-            Console.WriteLine($"Sending Message : {message}");
+            Console.WriteLine($"Sending Message           : {message}");
+
             writeQ.Enqueue(message);
             signalToWrite.Set();
             postWriteCallback();
