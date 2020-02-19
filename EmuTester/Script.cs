@@ -64,17 +64,27 @@ namespace EmuTester
         void Process(string cmdstr)
         {
             messageTimer.Stop();
+            bool seqNumPresent = false;
             var checkSum = cmdstr.Substring(cmdstr.Length - 1 - 2, 2);
             string strippedCmd = cmdstr.Substring(1, cmdstr.Length - 1 - 3);
             int unit = Convert.ToInt32(cmdstr.Substring(2, 1));
-            var cmdName = cmdstr.Substring(12, 4);
+            var fields = cmdstr.Split(',');
+            var cmdName = string.Empty;
+            if (fields[2].Length == 2)
+            {
+                seqNumPresent = true;
+                cmdName = fields[3];
+            }
+            else
+                cmdName = fields[2];
+            
 
             if (cmdstr.StartsWith("!"))//End Of Execution Message
             {
                 Console.WriteLine($"Received End of Execution : {cmdstr}");
                 _scriptState = ScriptState.EndOfExecReceived;
                 //Send ACKN
-                string acknmsg = $"$,{unit},ACKN,";
+                string acknmsg = seqNumPresent? $"$,{unit},{fields[2]},ACKN," : $"$,{unit},ACKN,";
                 string strippedMsg = acknmsg.Substring(1, acknmsg.Length - 1);
                 string chksum = CheckSum.Compute(strippedMsg);
                 string command = $"{acknmsg}{chksum}\r";
