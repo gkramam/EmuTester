@@ -11,21 +11,22 @@ namespace EmuTester
     {
         ScriptState _scriptState = ScriptState.None;
         ConnectionWoker _worker;
-        System.Timers.Timer messageTimer;
+        System.Timers.Timer retryTimer;
         string previousCommand = string.Empty;
-
+        ManualResetEvent _signalStateChange;
         public Script(ConnectionWoker worker)
         {
+            _signalStateChange = new ManualResetEvent(false);
             _worker = worker;
-            messageTimer = new System.Timers.Timer(5000);
-            messageTimer.Enabled = false;
-            messageTimer.AutoReset = false;
-            messageTimer.Elapsed += MessageTimer_Elapsed; ;
+            retryTimer = new System.Timers.Timer(10000);
+            retryTimer.Enabled = false;
+            retryTimer.AutoReset = false;
+            retryTimer.Elapsed += MessageTimer_Elapsed; ;
         }
 
         private void MessageTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            messageTimer.Stop();
+            retryTimer.Stop();
             if(_scriptState == ScriptState.CommandSent)
             {
                 Write(previousCommand, () => { });
@@ -45,50 +46,62 @@ namespace EmuTester
             _worker.PostReadCallback = Process;
             //_worker.Write(command, ()=> { _scriptState = ScriptState.CommandSent; });
             Write(command, () => { _scriptState = ScriptState.CommandSent; });
-            
-            while (_scriptState != ScriptState.ACKNSent)
-            {
-                Thread.Sleep(1000);
-            }
 
-            //Thread.Sleep(1000);
+            while (true)
+            {
+                _signalStateChange.WaitOne();
+                if (_scriptState == ScriptState.ACKNSent)
+                {
+                    Thread.Sleep(2000);
+                    break;
+                }
+                else
+                    _signalStateChange.Reset();
+            }
         }
 
         void Write(string cmd,Action setState)
         {
             previousCommand = cmd;
             _worker.Write(cmd, setState);
-            //messageTimer.Start();
+            retryTimer.Start();
+            _signalStateChange.Set();
         }
 
         void Process(string cmdstr)
         {
-            messageTimer.Stop();
+            retryTimer.Stop();
             bool seqNumPresent = false;
             var checkSum = cmdstr.Substring(cmdstr.Length - 1 - 2, 2);
             string strippedCmd = cmdstr.Substring(1, cmdstr.Length - 1 - 3);
-            int unit = Convert.ToInt32(cmdstr.Substring(2, 1));
-            var fields = cmdstr.Split(',');
-            var cmdName = string.Empty;
-            if (fields[2].Length == 2)
-            {
-                seqNumPresent = true;
-                cmdName = fields[3];
-            }
-            else
-                cmdName = fields[2];
+            
             
 
             if (cmdstr.StartsWith("!"))//End Of Execution Message
             {
                 Console.WriteLine($"Received End of Execution : {cmdstr}");
                 _scriptState = ScriptState.EndOfExecReceived;
+
+                int unit = Convert.ToInt32(cmdstr.Substring(2, 1));
+                var fields = cmdstr.Split(',');
+                var cmdName = string.Empty;
+                if (fields[5].Length == 6)
+                {
+                    cmdName = fields[4];
+                }
+                else
+                {
+                    seqNumPresent = true;
+                    cmdName = fields[5];
+                }
+
                 //Send ACKN
                 string acknmsg = seqNumPresent? $"$,{unit},{fields[2]},ACKN," : $"$,{unit},ACKN,";
                 string strippedMsg = acknmsg.Substring(1, acknmsg.Length - 1);
                 string chksum = CheckSum.Compute(strippedMsg);
                 string command = $"{acknmsg}{chksum}\r";
-                _worker.Write(command, () => { _scriptState = ScriptState.ACKNSent; });
+                //_worker.Write(command, () => { _scriptState = ScriptState.ACKNSent; });
+                Write(command, () => { _scriptState = ScriptState.ACKNSent; });
             }
             else if (cmdstr.StartsWith("<"))//Event
             {
@@ -100,10 +113,12 @@ namespace EmuTester
             }
             else
             {
-                _scriptState = ScriptState.ResponseReceived;
                 Console.WriteLine($"Received Response         : {cmdstr}");
-                //Normal Response $
+                
+                _scriptState = ScriptState.ResponseReceived;
             }
+
+           // _signalStateChange.Set();
         }
     }
 

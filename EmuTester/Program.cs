@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,6 +16,7 @@ namespace EmuTester
 
         static void Main(string[] args)
         {
+            
             Console.WriteLine("Emulator-Tester Started");
 
             robotLoop = new ConnectionWoker(50100);
@@ -23,9 +25,17 @@ namespace EmuTester
             preAlignLoop = new ConnectionWoker(50101);
             preAlignLoop.Start();
 
-            //RunScriptWithSeqNum();
-            RunScriptWithoutSeqNum();
-            
+            ConsoleKey key = ConsoleKey.Escape;
+            do
+            {
+                //RunScriptWithSeqNum();
+                RunScriptWithoutSeqNum();
+                Console.WriteLine("Press A to Repeat or ENTER to quit");
+                key = Console.ReadKey().Key;
+            } while (key == ConsoleKey.A);
+
+            robotLoop.Stop();
+            preAlignLoop.Stop();
         }
         static void RunScriptWithoutSeqNum()
         {
@@ -34,6 +44,9 @@ namespace EmuTester
 
             Console.WriteLine("!---    Robot Initialization ----!");
             robotScript.Execute("$,1,INIT,1,1,G,");
+
+            Console.WriteLine("\n!----    Pre-Aligner Initialization    -----!");
+            preAlignerScript.Execute("$,2,INIT,1,1,G,");
 
             Console.WriteLine("\n!---    Robot Get ----!");
             robotScript.Execute("$,1,MTRS,G,C02,05,L,1,G1,");
@@ -83,9 +96,6 @@ namespace EmuTester
 
             Console.WriteLine("\n!----    Pre-Aligner Alignment calibration    -----!");
             preAlignerScript.Execute("$,2,MACA,0,");
-
-
-            Console.ReadLine();
         }
 
         static void RunScriptWithSeqNum()
@@ -144,9 +154,6 @@ namespace EmuTester
 
             Console.WriteLine("\n!----    Pre-Aligner Alignment calibration    -----!");
             preAlignerScript.Execute("$,2,03,MACA,0,");
-
-
-            Console.ReadLine();
         }
     }
 

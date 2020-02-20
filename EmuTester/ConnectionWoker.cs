@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,16 +18,22 @@ namespace EmuTester
         Action<string> _postReadCallback = null;
         public Action<string> PostReadCallback { get { return _postReadCallback; } set { _postReadCallback = value; } }
 
-        Queue<string> readQ = new Queue<string>();
-        Queue<string> writeQ = new Queue<string>();
+        //Queue<string> writeQ = new Queue<string>();
+
+        BlockingCollection<string> writeQ = new System.Collections.Concurrent.BlockingCollection<string>();
 
         ManualResetEvent singalToProcess = new ManualResetEvent(false);
         ManualResetEvent signalToWrite = new ManualResetEvent(false);
-
+         
         Timer messageTimer;
         StringBuilder commandString = new StringBuilder();
         bool startDetected = false;
 
+        private bool _stop = false;
+        public void Stop()
+        {
+            _stop = true;
+        }
         public ConnectionWoker(int port) {
 
             client = new TcpClient();
@@ -56,12 +63,15 @@ namespace EmuTester
             //Read
             Task.Run(() =>
             {
-                while (client.Connected)
+                while (!_stop && client.Connected)
                 {
                     var amt = client.Available;
 
                     if (amt <= 0)
+                    {
+                        Thread.Sleep(1);
                         continue;
+                    }
 
                     char read = (char)sr.Read();
 
@@ -106,29 +116,30 @@ namespace EmuTester
                         messageTimer.Start();
                     }
                 }
+                sr.Close();
+                client.Dispose();
             });
 
             //Write
             Task.Run(() => 
             {
-                while(true)
+                while(!_stop)
                 {
-                    signalToWrite.WaitOne();
-                    while(writeQ.Count>0)
-                    {
-                        var msg = writeQ.Dequeue();
+                    foreach(var msg in writeQ.GetConsumingEnumerable())
+                    { 
                         var chars = msg.ToCharArray();
                         foreach (char c in chars)
                         {
                             sw.Write(c);
                             //sw.Flush();
-                            Thread.Sleep(5);//100 was working without task
+                            Thread.Sleep(10);//100 was working without task
                         }
-
-                        if (writeQ.Count == 0)
-                            signalToWrite.Reset();
                     }
                 }
+
+                sw.Close();
+                writeQ.Dispose();
+                client.Dispose();
             });
         }
 
@@ -136,8 +147,7 @@ namespace EmuTester
         {
             Console.WriteLine($"Sending Message           : {message}");
 
-            writeQ.Enqueue(message);
-            signalToWrite.Set();
+            writeQ.Add(message);
             postWriteCallback();
         }
 
