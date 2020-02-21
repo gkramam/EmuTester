@@ -29,7 +29,8 @@ namespace EmuTester
             do
             {
                 //RunScriptWithSeqNum();
-                RunScriptWithoutSeqNum();
+                //RunScriptWithoutSeqNum();
+                RunScriptWithoutCheckSum();
                 Console.WriteLine("Press A to Repeat or ENTER to quit");
                 key = Console.ReadKey().Key;
             } while (key == ConsoleKey.A);
@@ -154,6 +155,67 @@ namespace EmuTester
 
             Console.WriteLine("\n!----    Pre-Aligner Alignment calibration    -----!");
             preAlignerScript.Execute("$,2,03,MACA,0,");
+        }
+
+        static void RunScriptWithoutCheckSum()
+        {
+            Script robotScript = new Script(robotLoop);
+            Script preAlignerScript = new Script(preAlignLoop);
+
+            Console.WriteLine("!---    Robot Initialization ----!");
+            robotScript.ExecuteWithoutCheckSum("$,1,INIT,1,1,G,");
+
+            Console.WriteLine("\n!----    Pre-Aligner Initialization    -----!");
+            preAlignerScript.ExecuteWithoutCheckSum("$,2,INIT,1,1,G,");
+
+            Console.WriteLine("\n!---    Robot Get ----!");
+            robotScript.ExecuteWithoutCheckSum("$,1,MTRS,G,C02,05,L,1,G1,");
+
+            Console.WriteLine("\n!---    Robot Put ----!");
+            robotScript.ExecuteWithoutCheckSum("$,1,MTRS,P,P01,00,R,2,P4,00090000,");
+
+            Console.WriteLine("\n!---    Robot Get ----!");
+            robotScript.ExecuteWithoutCheckSum("$,1,MTRS,G,S01,00,L,2,G4,00000250,-0000300,00000000,00000000,");
+
+
+            Console.WriteLine("\n!---    Robot Get ----!");
+            robotScript.ExecuteWithoutCheckSum("$,1,MTRS,G,P01,00,L,1,G1,");
+
+            Console.WriteLine("\n!---    Robot Motion Transfer Point ----!");
+            robotScript.ExecuteWithoutCheckSum("$,1,MPNT,G3,");
+
+            Console.WriteLine("\n!---    Robot Continued Transfer ----!");
+            robotScript.ExecuteWithoutCheckSum("$,1,MCTR,P,P01,00,L,1,P4,00090000,");
+
+            Console.WriteLine("\n!---    Robot Move To Specified Position ----!");
+            robotScript.ExecuteWithoutCheckSum("$,1,MTCH,C04,01,R,1,R,00000000,00000000,00000000,");
+
+            Console.WriteLine("\n!---    Robot Move To Specified Position ----!");
+            robotScript.ExecuteWithoutCheckSum("$,1,MTCH,C01,01,L,1,B,");
+
+            Console.WriteLine("\n!---    Robot Move Axis To Specified Position ----!");
+            robotScript.ExecuteWithoutCheckSum("$,1,MABS,H,1,C,-0000300,");
+
+            Console.WriteLine("\n!---    Robot Move Axis To Specified Relative Position ----!");
+            robotScript.ExecuteWithoutCheckSum("$,1,MREL,H,1,C,-0000300,");
+
+            Console.WriteLine("\n!---    Robot Wafer Map ----!");
+            robotScript.ExecuteWithoutCheckSum("$,1,MMAP,C01,03,A,0,");
+
+            Console.WriteLine("\n!---    Robot Mapping Calibration ----!");
+            robotScript.ExecuteWithoutCheckSum("$,1,MMCA,C01,L,0,");
+
+
+            Console.WriteLine("\n\n ###########    PRE ALIGNER #############");
+
+            Console.WriteLine("\n!----    Pre-Aligner Initialization    -----!");
+            preAlignerScript.ExecuteWithoutCheckSum("$,2,INIT,1,1,G,");
+
+            Console.WriteLine("\n!----    Pre-Aligner Wafer Align    -----!");
+            preAlignerScript.ExecuteWithoutCheckSum("$,2,MALN,0,00000010,");
+
+            Console.WriteLine("\n!----    Pre-Aligner Alignment calibration    -----!");
+            preAlignerScript.ExecuteWithoutCheckSum("$,2,MACA,0,");
         }
     }
 

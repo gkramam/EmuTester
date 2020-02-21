@@ -14,6 +14,8 @@ namespace EmuTester
         System.Timers.Timer retryTimer;
         string previousCommand = string.Empty;
         ManualResetEvent _signalStateChange;
+        bool _useCheckSum;
+
         public Script(ConnectionWoker worker)
         {
             _signalStateChange = new ManualResetEvent(false);
@@ -37,12 +39,26 @@ namespace EmuTester
             }
         }
 
-        public void Execute(string message)
+        public void ExecuteWithoutCheckSum(string message)
         {
-            //string initMessage = "$,1,INIT,1,1,G,16\r";
-            string strippedMsg = message.Substring(1, message.Length - 1);
-            string chksum = CheckSum.Compute(strippedMsg);
-            string command = $"{message}{chksum}\r";
+            Execute(message, false);
+        }
+
+        public void Execute(string message, bool useCheckSum = true)
+        {
+            _useCheckSum = useCheckSum;
+
+            string command = string.Empty;
+
+            if (_useCheckSum)
+            {
+                string strippedMsg = message.Substring(1, message.Length - 1);
+                string chksum = CheckSum.Compute(strippedMsg);
+                command = $"{message}{chksum}\r";
+            }
+            else
+                command = $"{message.Remove(message.Length-1)}\r";
+
             _worker.PostReadCallback = Process;
             //_worker.Write(command, ()=> { _scriptState = ScriptState.CommandSent; });
             Write(command, () => { _scriptState = ScriptState.CommandSent; });
@@ -52,7 +68,7 @@ namespace EmuTester
                 _signalStateChange.WaitOne();
                 if (_scriptState == ScriptState.ACKNSent)
                 {
-                    Thread.Sleep(2000);
+                    //Thread.Sleep(2000);
                     break;
                 }
                 else
@@ -96,10 +112,16 @@ namespace EmuTester
                 }
 
                 //Send ACKN
-                string acknmsg = seqNumPresent? $"$,{unit},{fields[2]},ACKN," : $"$,{unit},ACKN,";
-                string strippedMsg = acknmsg.Substring(1, acknmsg.Length - 1);
-                string chksum = CheckSum.Compute(strippedMsg);
-                string command = $"{acknmsg}{chksum}\r";
+                string acknmsg = seqNumPresent? $"$,{unit},{fields[2]},ACKN" : $"$,{unit},ACKN";
+                string command = string.Empty;
+                if (_useCheckSum)
+                {
+                    string strippedMsg = acknmsg.Substring(1, acknmsg.Length - 1);
+                    string chksum = CheckSum.Compute(strippedMsg);
+                    command = $"{acknmsg}{chksum}\r";
+                }
+                else
+                    command = $"{acknmsg}\r";
                 //_worker.Write(command, () => { _scriptState = ScriptState.ACKNSent; });
                 Write(command, () => { _scriptState = ScriptState.ACKNSent; });
             }
