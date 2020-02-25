@@ -28,9 +28,11 @@ namespace EmuTester
             ConsoleKey key = ConsoleKey.Escape;
             do
             {
-                //RunScriptWithSeqNum();
-                //RunScriptWithoutSeqNum();
-                RunScriptWithoutCheckSum();
+                //RunScripts(false,false);
+                //RunScripts(false, true);
+                //RunScripts(true, false);
+                RunScripts(true, true);
+
                 Console.WriteLine("Press A to Repeat or ENTER to quit");
                 key = Console.ReadKey().Key;
             } while (key == ConsoleKey.A);
@@ -38,7 +40,25 @@ namespace EmuTester
             robotLoop.Stop();
             preAlignLoop.Stop();
         }
-        static void RunScriptWithoutSeqNum()
+
+        static void RunScripts(bool useSeqNum, bool useCheckSum)
+        {
+            if(useSeqNum)
+            {
+                if (useCheckSum)
+                    RunScriptWithSeqNumAndWithChecksum();
+                else
+                    RunScriptWithSeqNumAndWithoutChecksum();
+            }
+            else
+            {
+                if (useCheckSum)
+                    RunScriptWithoutSeqNumAndWithChecksum();
+                else
+                    RunScriptWithoutseqNumAndWithoutCheckSum();
+            }
+        }
+        static void RunScriptWithoutSeqNumAndWithChecksum()
         {
             Script robotScript = new Script(robotLoop);
             Script preAlignerScript = new Script(preAlignLoop);
@@ -99,65 +119,121 @@ namespace EmuTester
             preAlignerScript.Execute("$,2,MACA,0,");
         }
 
-        static void RunScriptWithSeqNum()
+        static void RunScriptWithSeqNumAndWithChecksum()
         {
             Script robotScript = new Script(robotLoop);
             Script preAlignerScript = new Script(preAlignLoop);
 
             Console.WriteLine("!---    Robot Initialization ----!");
-            robotScript.Execute("$,1,01,INIT,1,1,G,");
+            robotScript.Execute("$,1,01,INIT,1,1,G,",true,true);
 
-            Console.WriteLine("\n!---    Robot Get ----!");
-            robotScript.Execute("$,1,02,MTRS,G,C02,05,L,1,G1,");
+            Console.WriteLine("!---    Robot Initialization ----!");
+            robotScript.Execute("$,1,02,INIT,1,1,G,",true,true);
 
             Console.WriteLine("\n!---    Robot Put ----!");
-            robotScript.Execute("$,1,03,MTRS,P,P01,00,R,2,P4,00090000,");
+            robotScript.Execute("$,1,03,MTRS,P,P01,00,R,2,P4,00090000,",true,true);
 
             Console.WriteLine("\n!---    Robot Get ----!");
-            robotScript.Execute("$,1,04,MTRS,G,S01,00,L,2,G4,00000250,-0000300,00000000,00000000,");
-
+            robotScript.Execute("$,1,04,MTRS,G,S01,00,L,2,G4,00000250,-0000300,00000000,00000000,",true,true);
 
             Console.WriteLine("\n!---    Robot Get ----!");
-            robotScript.Execute("$,1,05,MTRS,G,P01,00,L,1,G1,");
+            robotScript.Execute("$,1,05,MTRS,G,P01,00,L,1,G1,",true,true);
 
             Console.WriteLine("\n!---    Robot Motion Transfer Point ----!");
-            robotScript.Execute("$,1,06,MPNT,G3,");
+            robotScript.Execute("$,1,06,MPNT,G3,",true,true);
 
             Console.WriteLine("\n!---    Robot Continued Transfer ----!");
-            robotScript.Execute("$,1,07,MCTR,P,P01,00,L,1,P4,00090000,");
+            robotScript.Execute("$,1,07,MCTR,P,P01,00,L,1,P4,00090000,",true,true);
 
             Console.WriteLine("\n!---    Robot Move To Specified Position ----!");
-            robotScript.Execute("$,1,08,MTCH,C04,01,R,1,R,00000000,00000000,00000000,");
+            robotScript.Execute("$,1,08,MTCH,C04,01,R,1,R,00000000,00000000,00000000,",true,true);
 
             Console.WriteLine("\n!---    Robot Move To Specified Position ----!");
-            robotScript.Execute("$,1,09,MTCH,C01,01,L,1,B,");
+            robotScript.Execute("$,1,09,MTCH,C01,01,L,1,B,",true,true);
 
             Console.WriteLine("\n!---    Robot Move Axis To Specified Position ----!");
-            robotScript.Execute("$,1,10,MABS,H,1,C,-0000300,");
+            robotScript.Execute("$,1,10,MABS,H,1,C,-0000300,",true,true);
 
             Console.WriteLine("\n!---    Robot Move Axis To Specified Relative Position ----!");
-            robotScript.Execute("$,1,11,MREL,H,1,C,-0000300,");
+            robotScript.Execute("$,1,11,MREL,H,1,C,-0000300,",true,true);
 
             Console.WriteLine("\n!---    Robot Wafer Map ----!");
-            robotScript.Execute("$,1,12,MMAP,C01,03,A,0,");
+            robotScript.Execute("$,1,12,MMAP,C01,03,A,0,",true,true);
 
             Console.WriteLine("\n!---    Robot Mapping Calibration ----!");
-            robotScript.Execute("$,1,13,MMCA,C01,L,0,");
+            robotScript.Execute("$,1,13,MMCA,C01,L,0,",true,true);
 
 
             Console.WriteLine("\n\n ###########    PRE ALIGNER #############");
 
             Console.WriteLine("\n!----    Pre-Aligner Initialization    -----!");
-            preAlignerScript.Execute("$,2,01,INIT,1,1,G,");
+            preAlignerScript.Execute("$,2,01,INIT,1,1,G,",true,true);
 
             Console.WriteLine("\n!----    Pre-Aligner Wafer Align    -----!");
-            preAlignerScript.Execute("$,2,02,MALN,0,00000010,");
+            preAlignerScript.Execute("$,2,02,MALN,0,00000010,",true,true);
 
             Console.WriteLine("\n!----    Pre-Aligner Alignment calibration    -----!");
-            preAlignerScript.Execute("$,2,03,MACA,0,");
+            preAlignerScript.Execute("$,2,03,MACA,0,",true,true);
         }
 
-        static void RunScriptWithoutCheckSum()
+        static void RunScriptWithSeqNumAndWithoutChecksum()
+        {
+            Script robotScript = new Script(robotLoop);
+            Script preAlignerScript = new Script(preAlignLoop);
+
+            Console.WriteLine("!---    Robot Initialization ----!");
+            robotScript.Execute("$,1,01,INIT,1,1,G,",false,true);
+
+            Console.WriteLine("\n!---    Robot Get ----!");
+            robotScript.Execute("$,1,02,MTRS,G,C02,05,L,1,G1,", false, true);
+
+            Console.WriteLine("\n!---    Robot Put ----!");
+            robotScript.Execute("$,1,03,MTRS,P,P01,00,R,2,P4,00090000,", false, true);
+
+            Console.WriteLine("\n!---    Robot Get ----!");
+            robotScript.Execute("$,1,04,MTRS,G,S01,00,L,2,G4,00000250,-0000300,00000000,00000000,", false, true);
+
+            Console.WriteLine("\n!---    Robot Get ----!");
+            robotScript.Execute("$,1,05,MTRS,G,P01,00,L,1,G1,", false, true);
+
+            Console.WriteLine("\n!---    Robot Motion Transfer Point ----!");
+            robotScript.Execute("$,1,06,MPNT,G3,", false, true);
+
+            Console.WriteLine("\n!---    Robot Continued Transfer ----!");
+            robotScript.Execute("$,1,07,MCTR,P,P01,00,L,1,P4,00090000,", false, true);
+
+            Console.WriteLine("\n!---    Robot Move To Specified Position ----!");
+            robotScript.Execute("$,1,08,MTCH,C04,01,R,1,R,00000000,00000000,00000000,", false, true);
+
+            Console.WriteLine("\n!---    Robot Move To Specified Position ----!");
+            robotScript.Execute("$,1,09,MTCH,C01,01,L,1,B,", false, true);
+
+            Console.WriteLine("\n!---    Robot Move Axis To Specified Position ----!");
+            robotScript.Execute("$,1,10,MABS,H,1,C,-0000300,", false, true);
+
+            Console.WriteLine("\n!---    Robot Move Axis To Specified Relative Position ----!");
+            robotScript.Execute("$,1,11,MREL,H,1,C,-0000300,", false, true);
+
+            Console.WriteLine("\n!---    Robot Wafer Map ----!");
+            robotScript.Execute("$,1,12,MMAP,C01,03,A,0,", false, true);
+
+            Console.WriteLine("\n!---    Robot Mapping Calibration ----!");
+            robotScript.Execute("$,1,13,MMCA,C01,L,0,", false, true);
+
+
+            Console.WriteLine("\n\n ###########    PRE ALIGNER #############");
+
+            Console.WriteLine("\n!----    Pre-Aligner Initialization    -----!");
+            preAlignerScript.Execute("$,2,01,INIT,1,1,G,", false, true);
+
+            Console.WriteLine("\n!----    Pre-Aligner Wafer Align    -----!");
+            preAlignerScript.Execute("$,2,02,MALN,0,00000010,", false, true);
+
+            Console.WriteLine("\n!----    Pre-Aligner Alignment calibration    -----!");
+            preAlignerScript.Execute("$,2,03,MACA,0,", false, true);
+        }
+
+        static void RunScriptWithoutseqNumAndWithoutCheckSum()
         {
             Script robotScript = new Script(robotLoop);
             Script preAlignerScript = new Script(preAlignLoop);

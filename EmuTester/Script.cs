@@ -15,6 +15,8 @@ namespace EmuTester
         string previousCommand = string.Empty;
         ManualResetEvent _signalStateChange;
         bool _useCheckSum;
+        int _seqNum = 10;
+        bool _useSeqNum;
 
         public Script(ConnectionWoker worker)
         {
@@ -44,11 +46,26 @@ namespace EmuTester
             Execute(message, false);
         }
 
-        public void Execute(string message, bool useCheckSum = true)
+        void IncrementSeQNum()
         {
+            _seqNum++;
+            if (_seqNum > 99)
+                _seqNum = 0;
+        }
+
+        public void Execute(string message, bool useCheckSum = true, bool useSeqNum=false)
+        {
+            _useSeqNum = useSeqNum;
             _useCheckSum = useCheckSum;
 
             string command = string.Empty;
+
+            if(_useSeqNum)
+            {
+                IncrementSeQNum();
+                message = message.Remove(4, 2);
+                message = message.Insert(4, _seqNum.ToString("D2"));
+            }
 
             if (_useCheckSum)
             {
@@ -109,16 +126,17 @@ namespace EmuTester
                 {
                     seqNumPresent = true;
                     cmdName = fields[5];
+                    IncrementSeQNum();
                 }
 
                 //Send ACKN
-                string acknmsg = seqNumPresent? $"$,{unit},{fields[2]},ACKN" : $"$,{unit},ACKN";
+                string acknmsg = seqNumPresent? $"$,{unit},{_seqNum.ToString("D2")},ACKN" : $"$,{unit},ACKN";
                 string command = string.Empty;
                 if (_useCheckSum)
                 {
-                    string strippedMsg = acknmsg.Substring(1, acknmsg.Length - 1);
+                    string strippedMsg = acknmsg.Substring(1, acknmsg.Length - 1) + ',';
                     string chksum = CheckSum.Compute(strippedMsg);
-                    command = $"{acknmsg}{chksum}\r";
+                    command = $"{acknmsg},{chksum}\r";
                 }
                 else
                     command = $"{acknmsg}\r";
