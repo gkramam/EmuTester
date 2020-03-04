@@ -7,17 +7,29 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace EmuTester
 {
     class Program
     {
+        public static BlockingCollection<string> ConsoleQ = new BlockingCollection<string>();
         static ConnectionWoker robotLoop, preAlignLoop;
 
         static void Main(string[] args)
         {
-            
+            //ProcessXML();
+            //return;
+
             Console.WriteLine("Emulator-Tester Started");
+
+            Task.Run(() =>
+            {
+                foreach (var s in ConsoleQ.GetConsumingEnumerable())
+                {
+                    Console.WriteLine(s);
+                }
+            });
 
             robotLoop = new ConnectionWoker(50100);
             robotLoop.Start();
@@ -33,12 +45,206 @@ namespace EmuTester
                 //RunScripts(true, false);
                 RunScripts(true, true);
 
-                Console.WriteLine("Press A to Repeat or ENTER to quit");
-                key = Console.ReadKey().Key;
-            } while (key == ConsoleKey.A);
+                //Console.WriteLine("Press A to Repeat or ENTER to quit");
+                //key = Console.ReadKey().Key;
+                //} while (key == ConsoleKey.A);
+            } while (true);
 
             robotLoop.Stop();
             preAlignLoop.Stop();
+        }
+
+        static void ProcessXML()
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.Load("Environment.xml");
+            Environment env = new Environment(doc.SelectSingleNode("/Environment"));
+        }
+
+        public class Environment
+        {
+            public Manipulator Manipulator { get; set; }
+            public Prealigner Prealigner { get; set; }
+            public Environment(XmlNode envNode)
+            {
+                if(envNode == null)
+                {
+                    throw new ApplicationException("Invalid Environment xml file. No Environment node found");
+                }
+
+                Manipulator = new Manipulator(envNode.SelectSingleNode("//Device[@name='Manipulator']"));
+                Prealigner = new Prealigner(envNode.SelectSingleNode("//Device[@name='PreAligner']"));
+            }
+        }
+
+        public class ManipulatorPosition
+        {
+            public double RotationAxis { get; set; }
+            public double ExtensionAxis { get; set; }
+            public double WristAxis1 { get; set; }
+            public double WristAxis2 { get; set; }
+            public double ElevationAxis { get; set; }
+
+            public ManipulatorPosition(XmlNode positionNode)
+            {
+
+                if (positionNode == null)
+                {
+                    throw new ApplicationException("Invalid Environment xml file. No position node found");
+                }
+
+                RotationAxis = double.Parse(positionNode["RotationAxis"].InnerText) * 0.001;
+                ExtensionAxis = double.Parse(positionNode["ExtensionAxis"].InnerText) * 0.001;
+                WristAxis1 = double.Parse(positionNode["WristAxis1"].InnerText) * 0.001;
+                WristAxis2 = double.Parse(positionNode["WristAxis2"].InnerText) * 0.001;
+                ElevationAxis = double.Parse(positionNode["ElevationAxis"].InnerText) * 0.001;
+            }
+        }
+
+        public enum StationType
+        {
+            Casette,
+            Transfer,
+            PreAligner
+        }
+
+        public enum SlotStatus
+        {
+            Empty,
+            Present,
+            Protruded,
+            DoubleInsertion,
+            Inclined
+        }
+
+        public class Slot
+        {
+            public int ID { get; set; }
+            public SlotStatus Status { get; set; }
+            public Slot(XmlNode slotNode)
+            {
+                if (slotNode == null)
+                {
+                    throw new ApplicationException("Invalid Environment xml file. No slot node found");
+                }
+
+                ID = Convert.ToInt32(slotNode.Attributes["id"].Value);
+                Status = (SlotStatus)Enum.Parse(typeof(SlotStatus), slotNode.Attributes["status"].Value);
+            }
+        }
+
+        public class Threshold
+        {
+            public double Value { get; set; }
+
+            public MappingCalibrationThresholdType Type { get; set; }
+
+            public Threshold(XmlNode tNode)
+            {
+                if (tNode == null)
+                {
+                    throw new ApplicationException("Invalid Environment xml file. No threshold node found");
+                }
+
+                Type = (MappingCalibrationThresholdType)Enum.Parse(typeof(MappingCalibrationThresholdType), tNode.Name);
+                Value = double.Parse(tNode.InnerText) * 0.001;
+            }
+
+            public override string ToString()
+            {
+                return ((int)Value / 0.001).ToString("D8");
+            }
+
+        }
+
+        public enum MappingCalibrationThresholdType
+        {
+            DoubleInsertion,
+            SlantingInsertion1,
+            SlantingInsertion2
+        }
+
+        public class Station
+        {
+            public StationType Type { get; set; }
+            public string ID { get; set; }
+
+            public List<Slot> Slots { get; set; }
+
+            public ManipulatorPosition LowestRegisteredPosition { get; set; }
+            public ManipulatorPosition HighestRegisteredPosition { get; set; }
+            public ManipulatorPosition RegisteredG4Position { get; set; }
+            public ManipulatorPosition RegisteredP4Position { get; set; }
+
+            public List<Threshold> Thresholds { get; set; }
+
+            public double WaferWidth { get; set; }
+
+            public double LowestSlotPosition { get; set; }
+            public double HighestSlotPosition { get; set; }
+            public Station(XmlNode stationNode)
+            {
+                if (stationNode == null)
+                {
+                    throw new ApplicationException("Invalid Environment xml file. No station node found");
+                }
+
+                Type = (StationType) Enum.Parse(typeof(StationType), stationNode.Attributes["type"].Value);
+                ID = stationNode.Attributes["id"].Value;
+                
+                Slots = new List<Slot>();
+                foreach(XmlNode slotNode in stationNode.SelectNodes("Slot"))
+                {
+                    Slots.Add(new Slot(slotNode));
+                }
+
+                LowestRegisteredPosition = new ManipulatorPosition(stationNode.SelectSingleNode("Positions/Position[@key='Lowest']"));
+                
+                if(Type == StationType.Casette)
+                    HighestRegisteredPosition = new ManipulatorPosition(stationNode.SelectSingleNode("Positions//Position[@key='Highest']"));
+                
+                RegisteredG4Position = new ManipulatorPosition(stationNode.SelectSingleNode("Positions//Position[@key='G4']"));
+                RegisteredP4Position = new ManipulatorPosition(stationNode.SelectSingleNode("Positions//Position[@key='P4']"));
+
+                Thresholds = new List<Threshold>();
+                if (Type == StationType.Casette)
+                {
+                    foreach (XmlNode t in stationNode.SelectSingleNode("Thresholds").ChildNodes)
+                    {
+                        Thresholds.Add(new Threshold(t));
+                    }
+                }
+
+                WaferWidth = double.Parse(stationNode["WaferWidth"].InnerText) * 0.001;
+            }
+        }
+        public class Manipulator
+        {
+            public ManipulatorPosition HomePosition { get; set; }
+
+            public List<Station> Stations { get; set; }
+            public Manipulator(XmlNode manipulatorNode)
+            {
+                if (manipulatorNode == null)
+                {
+                    throw new ApplicationException("Invalid Environment xml file. No Manipulator node found");
+                }
+
+                HomePosition = new ManipulatorPosition(manipulatorNode.SelectSingleNode("Position[@key='Home']"));
+                Stations = new List<Station>();
+                foreach(XmlNode snode in manipulatorNode.SelectNodes("Stations/Station"))
+                {
+                    Stations.Add(new Station(snode));
+                }
+            }
+        }
+
+        public class Prealigner
+        {
+            public Prealigner(XmlNode prealignerNode)
+            {
+
+            }
         }
 
         static void RunScripts(bool useSeqNum, bool useCheckSum)
@@ -158,7 +364,11 @@ namespace EmuTester
             robotScript.Execute("$,1,11,MREL,H,1,C,-0000300,",true,true);
 
             Console.WriteLine("\n!---    Robot Wafer Map ----!");
-            robotScript.Execute("$,1,12,MMAP,C01,03,A,0,",true,true);
+            robotScript.Execute("$,1,12,MMAP,C01,02,A,0,",true,true);
+            robotScript.Execute("$,1,12,MMAP,C01,00,A,0,", true, true);
+            robotScript.Execute("$,1,12,MMAP,C02,00,A,0,", true, true);
+            robotScript.Execute("$,1,12,MMAP,S02,00,A,0,", true, true);
+            robotScript.Execute("$,1,12,MMAP,P01,00,A,0,", true, true);
 
             Console.WriteLine("\n!---    Robot Mapping Calibration ----!");
             robotScript.Execute("$,1,13,MMCA,C01,L,0,",true,true);

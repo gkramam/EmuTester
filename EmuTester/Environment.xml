@@ -1,0 +1,202 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Environment>
+  <Devices>
+    <Device name="Manipulator">
+      <Position key="Home">
+        <RotationAxis>0</RotationAxis>
+        <ExtensionAxis>0</ExtensionAxis>
+        <WristAxis1>00090000</WristAxis1>
+        <WristAxis2>00090000</WristAxis2>
+        <ElevationAxis>0</ElevationAxis>
+      </Position>
+      <Stations>
+        <Station type="Casette" id="C01">
+          <WaferWidth>00300000</WaferWidth>
+          <Thresholds>
+            <DoubleInsertion>00300000</DoubleInsertion>
+            <SlantingInsertion1>00300000</SlantingInsertion1>
+            <SlantingInsertion2>00300000</SlantingInsertion2>
+          </Thresholds>
+          <Positions>
+            <Position key="Lowest">
+              <RotationAxis>00000450</RotationAxis>
+              <ExtensionAxis>-0757520</ExtensionAxis>
+              <WristAxis1>-0090450</WristAxis1>
+              <WristAxis2>00036200</WristAxis2>
+              <ElevationAxis>00105500</ElevationAxis>
+            </Position>
+            <Position key="Highest">
+              <RotationAxis>0</RotationAxis>
+              <ExtensionAxis>0</ExtensionAxis>
+              <WristAxis1>90</WristAxis1>
+              <WristAxis2>90</WristAxis2>
+              <ElevationAxis>0</ElevationAxis>
+            </Position>
+            <Position key="G4">
+              <RotationAxis>00000450</RotationAxis>
+              <ExtensionAxis>-0757520</ExtensionAxis>
+              <WristAxis1>-0090450</WristAxis1>
+              <WristAxis2>00036200</WristAxis2>
+              <ElevationAxis>00105500</ElevationAxis>
+            </Position>
+            <Position key="P4">
+              <RotationAxis>00000450</RotationAxis>
+              <ExtensionAxis>-0757520</ExtensionAxis>
+              <WristAxis1>-0090450</WristAxis1>
+              <WristAxis2>00036200</WristAxis2>
+              <ElevationAxis>00105500</ElevationAxis>
+            </Position>
+          </Positions>
+          <Slot id="01" status="Present"/>
+          <Slot id="02" status="Empty"/>
+          <Slot id="03" status="Present"/>
+        </Station>
+        <Station type="Casette" id="C02">
+          <WaferWidth>00200000</WaferWidth>
+          <Thresholds>
+            <DoubleInsertion>00300000</DoubleInsertion>
+            <SlantingInsertion1>00300000</SlantingInsertion1>
+            <SlantingInsertion2>00300000</SlantingInsertion2>
+          </Thresholds>
+          <Positions>
+            <Position key="Lowest">
+              <RotationAxis>00051950</RotationAxis>
+              <ExtensionAxis>00531150</ExtensionAxis>
+              <WristAxis1>00038410</WristAxis1>
+              <WristAxis2>00167210</WristAxis2>
+              <ElevationAxis>00405500</ElevationAxis>
+            </Position>
+            <Position key="Highest">
+              <RotationAxis>0</RotationAxis>
+              <ExtensionAxis>0</ExtensionAxis>
+              <WristAxis1>90</WristAxis1>
+              <WristAxis2>90</WristAxis2>
+              <ElevationAxis>0</ElevationAxis>
+            </Position>
+            <Position key="G4">
+              <RotationAxis>00051950</RotationAxis>
+              <ExtensionAxis>00531150</ExtensionAxis>
+              <WristAxis1>00038410</WristAxis1>
+              <WristAxis2>00167210</WristAxis2>
+              <ElevationAxis>00405500</ElevationAxis>
+            </Position>
+            <Position key="P4">
+              <RotationAxis>00051950</RotationAxis>
+              <ExtensionAxis>00531150</ExtensionAxis>
+              <WristAxis1>00038410</WristAxis1>
+              <WristAxis2>00167210</WristAxis2>
+              <ElevationAxis>00405500</ElevationAxis>
+            </Position>
+          </Positions>
+          <Slot id="01" status="DoubleInsertion"/>
+          <Slot id="02" status="Protruded"/>
+          <Slot id="03" status="Inclined"/>
+        </Station>
+        <Station type="Transfer" id="S01">
+          <Slot id="01" status="Empty"/>
+          <Positions>
+            <Position key="Lowest">
+              <RotationAxis>-0042300</RotationAxis>
+              <ExtensionAxis>-0618410</ExtensionAxis>
+              <WristAxis1>00132300</WristAxis1>
+              <WristAxis2>00003500</WristAxis2>
+              <ElevationAxis>00300000</ElevationAxis>
+            </Position>
+            <Position key="G4">
+              <RotationAxis>-0042300</RotationAxis>
+              <ExtensionAxis>-0618410</ExtensionAxis>
+              <WristAxis1>00132300</WristAxis1>
+              <WristAxis2>00003500</WristAxis2>
+              <ElevationAxis>00300000</ElevationAxis>
+            </Position>
+            <Position key="P4">
+              <RotationAxis>-0042300</RotationAxis>
+              <ExtensionAxis>-0618410</ExtensionAxis>
+              <WristAxis1>00132300</WristAxis1>
+              <WristAxis2>00003500</WristAxis2>
+              <ElevationAxis>00300000</ElevationAxis>
+            </Position>
+          </Positions>
+        </Station>
+        <Station type="Transfer" id="S02">
+          <Slot id="01" status="Present"/>
+          <Positions>
+            <Position key="Lowest">
+              <RotationAxis>0</RotationAxis>
+              <ExtensionAxis>0</ExtensionAxis>
+              <WristAxis1>00090000</WristAxis1>
+              <WristAxis2>00090000</WristAxis2>
+              <ElevationAxis>0</ElevationAxis>
+            </Position>
+            <Position key="G4">
+              <RotationAxis>0</RotationAxis>
+              <ExtensionAxis>0</ExtensionAxis>
+              <WristAxis1>00090000</WristAxis1>
+              <WristAxis2>00090000</WristAxis2>
+              <ElevationAxis>0</ElevationAxis>
+            </Position>
+            <Position key="P4">
+              <RotationAxis>0</RotationAxis>
+              <ExtensionAxis>0</ExtensionAxis>
+              <WristAxis1>00090000</WristAxis1>
+              <WristAxis2>00090000</WristAxis2>
+              <ElevationAxis>0</ElevationAxis>
+            </Position>
+          </Positions>
+        </Station>
+        <Station type="Transfer" id="S03">
+          <Slot id="01" status="Empty"/>
+          <Positions>
+            <Position key="Lowest">
+              <RotationAxis>0</RotationAxis>
+              <ExtensionAxis>0</ExtensionAxis>
+              <WristAxis1>00090000</WristAxis1>
+              <WristAxis2>00090000</WristAxis2>
+              <ElevationAxis>0</ElevationAxis>
+            </Position>
+            <Position key="G4">
+              <RotationAxis>0</RotationAxis>
+              <ExtensionAxis>0</ExtensionAxis>
+              <WristAxis1>00090000</WristAxis1>
+              <WristAxis2>00090000</WristAxis2>
+              <ElevationAxis>0</ElevationAxis>
+            </Position>
+            <Position key="P4">
+              <RotationAxis>0</RotationAxis>
+              <ExtensionAxis>0</ExtensionAxis>
+              <WristAxis1>00090000</WristAxis1>
+              <WristAxis2>00090000</WristAxis2>
+              <ElevationAxis>0</ElevationAxis>
+            </Position>
+          </Positions>
+        </Station>
+        <Station type="PreAligner" id="P01">
+          <Slot id="01" status="Present"/>
+          <Positions>
+            <Position key="Lowest">
+              <RotationAxis>0</RotationAxis>
+              <ExtensionAxis>0</ExtensionAxis>
+              <WristAxis1>00090000</WristAxis1>
+              <WristAxis2>00090000</WristAxis2>
+              <ElevationAxis>0</ElevationAxis>
+            </Position>
+            <Position key="G4">
+              <RotationAxis>0</RotationAxis>
+              <ExtensionAxis>0</ExtensionAxis>
+              <WristAxis1>00090000</WristAxis1>
+              <WristAxis2>00090000</WristAxis2>
+              <ElevationAxis>0</ElevationAxis>
+            </Position>
+            <Position key="P4">
+              <RotationAxis>0</RotationAxis>
+              <ExtensionAxis>0</ExtensionAxis>
+              <WristAxis1>00090000</WristAxis1>
+              <WristAxis2>00090000</WristAxis2>
+              <ElevationAxis>0</ElevationAxis>
+            </Position>
+          </Positions>
+        </Station>
+      </Stations>
+    </Device>
+  </Devices>
+</Environment>

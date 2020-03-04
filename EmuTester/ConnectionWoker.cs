@@ -22,9 +22,6 @@ namespace EmuTester
 
         BlockingCollection<string> writeQ = new System.Collections.Concurrent.BlockingCollection<string>();
 
-        ManualResetEvent singalToProcess = new ManualResetEvent(false);
-        ManualResetEvent signalToWrite = new ManualResetEvent(false);
-         
         Timer messageTimer;
         StringBuilder commandString = new StringBuilder();
         bool startDetected = false;
@@ -38,6 +35,7 @@ namespace EmuTester
 
             client = new TcpClient();
             client.Connect("localhost", port);
+            client.NoDelay = true;
 
             messageTimer = new Timer(20);
             messageTimer.Enabled = false;
@@ -48,9 +46,9 @@ namespace EmuTester
 
         private void MessageTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            messageTimer.Stop();
-            commandString = new StringBuilder();
-            startDetected = false;
+            //messageTimer.Stop();
+            //commandString = new StringBuilder();
+            //startDetected = false;
         }
 
         public void Start()
@@ -61,21 +59,68 @@ namespace EmuTester
             sw.AutoFlush = true;
 
             //Read
+            //Thread read = new Thread(() =>
             Task.Run(() =>
             {
                 while (!_stop && client.Connected)
                 {
-                    var amt = client.Available;
-
-                    if (amt <= 0)
+                    if (client.Client.Poll(-1, SelectMode.SelectRead))
                     {
-                        Thread.Sleep(1);
-                        continue;
+                        var amt = client.ReceiveBufferSize;
+
+                        char[] readBuffer = new char[amt];
+                        var length = sr.Read(readBuffer, 0, amt);
+                        readBufferQ.Add(readBuffer.Take(length).ToArray());
                     }
+                }
+                sr.Close();
+                client.Dispose();
+            });
+            //read.Priority = ThreadPriority.AboveNormal;
+            //read.IsBackground = true;
+            //read.Start();
 
-                    char read = (char)sr.Read();
+            //Write
+            //Thread write = new Thread(() =>
+            Task.Run(() =>
+            {
+                //while(!_stop)
+                {
+                    foreach(var msg in writeQ.GetConsumingEnumerable())
+                    {
+                        if (client.Client.Poll(-1, SelectMode.SelectWrite))
+                        {
+                            sw.Write(msg);
+                        }
+                        if (_stop)
+                            break;
+                    }
+                }
 
-                    if ((read == '$' || read == '!' || read == '<' || read== '?')&& !startDetected)
+                sw.Close();
+                writeQ.Dispose();
+                client.Dispose();
+            });
+            //write.Priority = ThreadPriority.AboveNormal;
+            //write.IsBackground = true;
+            //write.Start();
+
+            //Thread process = new Thread(() =>
+            Task.Run(() =>
+            { ProcessReadBufer(); });
+            //process.Priority = ThreadPriority.AboveNormal;
+            //process.IsBackground = true;
+            //process.Start();
+        }
+
+        BlockingCollection<char[]> readBufferQ = new BlockingCollection<char[]>();
+        void ProcessReadBufer()
+        {
+            foreach (var buffer in readBufferQ.GetConsumingEnumerable())
+            {
+                foreach (var read in buffer)
+                {
+                    if ((read == '$' || read == '!' || read == '<' || read == '?') && !startDetected)
                     {
                         startDetected = true;
                         messageTimer.Start();
@@ -99,7 +144,7 @@ namespace EmuTester
                             commandString.Append(read);
                             var cmd = commandString.ToString();
                             //readCommandQ.Enqueue(cmd);
-                            Task.Run(()=> { PostReadCallback(cmd); });
+                            PostReadCallback(cmd);
                             commandString = new StringBuilder();
                             startDetected = false;
                         }
@@ -116,37 +161,13 @@ namespace EmuTester
                         messageTimer.Start();
                     }
                 }
-                sr.Close();
-                client.Dispose();
-            });
-
-            //Write
-            Task.Run(() => 
-            {
-                while(!_stop)
-                {
-                    foreach(var msg in writeQ.GetConsumingEnumerable())
-                    { 
-                        var chars = msg.ToCharArray();
-                        foreach (char c in chars)
-                        {
-                            sw.Write(c);
-                            //sw.Flush();
-                            Thread.Sleep(10);//100 was working without task
-                        }
-                    }
-                }
-
-                sw.Close();
-                writeQ.Dispose();
-                client.Dispose();
-            });
+            }
         }
 
         public void Write(string message,Action postWriteCallback)
         {
-            Console.WriteLine($"Sending Message           : {message}");
-
+            //Console.WriteLine($"Sending Message           : {message}");
+            Program.ConsoleQ.Add($"Sending Message           : {message}");
             writeQ.Add(message);
             postWriteCallback();
         }

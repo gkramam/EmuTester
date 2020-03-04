@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,8 +16,10 @@ namespace EmuTester
         string previousCommand = string.Empty;
         ManualResetEvent _signalStateChange;
         bool _useCheckSum;
-        int _seqNum = 10;
+        int _seqNum = -1;
         bool _useSeqNum;
+
+        BlockingCollection<string> IncomingQ = new BlockingCollection<string>();
 
         public Script(ConnectionWoker worker)
         {
@@ -26,19 +29,27 @@ namespace EmuTester
             retryTimer.Enabled = false;
             retryTimer.AutoReset = false;
             retryTimer.Elapsed += MessageTimer_Elapsed; ;
+
+            Task.Run(() => 
+            {
+                foreach(var res in IncomingQ.GetConsumingEnumerable())
+                {
+                    Process(res);
+                }
+            });
         }
 
         private void MessageTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            retryTimer.Stop();
-            if(_scriptState == ScriptState.CommandSent)
-            {
-                Write(previousCommand, () => { });
-            }
-            if(_scriptState == ScriptState.ACKNSent)
-            {
-                ;
-            }
+            //retryTimer.Stop();
+            //if(_scriptState == ScriptState.CommandSent)
+            //{
+            //    Write(previousCommand, () => { });
+            //}
+            //if(_scriptState == ScriptState.ACKNSent)
+            //{
+            //    ;
+            //}
         }
 
         public void ExecuteWithoutCheckSum(string message)
@@ -76,7 +87,7 @@ namespace EmuTester
             else
                 command = $"{message.Remove(message.Length-1)}\r";
 
-            _worker.PostReadCallback = Process;
+            _worker.PostReadCallback = (x)=> { IncomingQ.Add(x); };
             //_worker.Write(command, ()=> { _scriptState = ScriptState.CommandSent; });
             Write(command, () => { _scriptState = ScriptState.CommandSent; });
 
@@ -85,7 +96,7 @@ namespace EmuTester
                 _signalStateChange.WaitOne();
                 if (_scriptState == ScriptState.ACKNSent)
                 {
-                    //Thread.Sleep(2000);
+                    //Thread.Sleep(15);
                     break;
                 }
                 else
@@ -107,12 +118,11 @@ namespace EmuTester
             bool seqNumPresent = false;
             var checkSum = cmdstr.Substring(cmdstr.Length - 1 - 2, 2);
             string strippedCmd = cmdstr.Substring(1, cmdstr.Length - 1 - 3);
-            
-            
 
             if (cmdstr.StartsWith("!"))//End Of Execution Message
             {
-                Console.WriteLine($"Received End of Execution : {cmdstr}");
+                //Console.WriteLine($"Received End of Execution : {cmdstr}");
+                Program.ConsoleQ.Add($"Received End of Execution : {cmdstr}");
                 _scriptState = ScriptState.EndOfExecReceived;
 
                 int unit = Convert.ToInt32(cmdstr.Substring(2, 1));
@@ -153,8 +163,8 @@ namespace EmuTester
             }
             else
             {
-                Console.WriteLine($"Received Response         : {cmdstr}");
-                
+                //Console.WriteLine($"Received Response         : {cmdstr}");
+                Program.ConsoleQ.Add($"Received Response         : {cmdstr}");
                 _scriptState = ScriptState.ResponseReceived;
             }
 
