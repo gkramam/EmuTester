@@ -44,9 +44,9 @@ namespace EmuTester
                 //RunScripts(false, true);
                 //RunScripts(true, false);
                 RunScripts(true, true);
-
-                //Console.WriteLine("Press A to Repeat or ENTER to quit");
-                //key = Console.ReadKey().Key;
+                //RunScriptWithSeqNumAndWithChecksumWithReferenceMessages();
+                //    Console.WriteLine("Press A to Repeat or ENTER to quit");
+                //    key = Console.ReadKey().Key;
                 //} while (key == ConsoleKey.A);
             } while (true);
 
@@ -325,16 +325,46 @@ namespace EmuTester
             preAlignerScript.Execute("$,2,MACA,0,");
         }
 
+        static void RunScriptWithSeqNumAndWithChecksumWithReferenceMessages()
+        {
+            Script robotScript = new Script(robotLoop);
+            Script preAlignerScript = new Script(preAlignLoop);
+
+            //Console.WriteLine("!---    Robot Initialization ----!");
+            //robotScript.Execute("$,1,01,INIT,1,1,G,", true, true);
+            robotScript.Execute("$,1,01,CSRV,1,", true, true);
+            return;
+
+            Console.WriteLine("\n!---    Robot Wafer Map ----!");
+            robotScript.ExecuteControlInterLeavedWithReferenceCommands("$,1,12,MMAP,C01,02,A,0,", new List<string>() {
+                "$,1,13,RMAP,C01,00,",
+                "$,1,13,RMAP,C02,00,",
+                "$,1,13,RMAP,P01,00,",
+                "$,1,13,RMAP,S01,00,",
+                "$,1,13,RMAP,S02,00,",
+                "$,1,13,RMAP,S03,00,",
+                "$,1,13,RMAP,C01,01,",
+                "$,1,13,RMAP,C01,02,",
+                "$,1,13,RMAP,C01,03,",
+                "$,1,13,RMAP,C02,01,",
+                "$,1,13,RMAP,C02,02,",
+                "$,1,13,RMAP,C02,03,",
+                });
+        }
+
         static void RunScriptWithSeqNumAndWithChecksum()
         {
             Script robotScript = new Script(robotLoop);
             Script preAlignerScript = new Script(preAlignLoop);
 
             Console.WriteLine("!---    Robot Initialization ----!");
-            robotScript.Execute("$,1,01,INIT,1,1,G,",true,true);
+            robotScript.Execute("$,1,01,INIT,1,1,G,", true, true);
 
-            Console.WriteLine("!---    Robot Initialization ----!");
-            robotScript.Execute("$,1,02,INIT,1,1,G,",true,true);
+            //Console.WriteLine("!---    Robot Initialization ----!");
+            //robotScript.Execute("$,1,02,INIT,1,1,G,",true,true);
+
+            Console.WriteLine("\n!----    Pre-Aligner Initialization    -----!");
+            preAlignerScript.Execute("$,2,01,INIT,1,1,G,", true, true);
 
             Console.WriteLine("\n!---    Robot Put ----!");
             robotScript.Execute("$,1,03,MTRS,P,P01,00,R,2,P4,00090000,",true,true);
@@ -352,38 +382,39 @@ namespace EmuTester
             robotScript.Execute("$,1,07,MCTR,P,P01,00,L,1,P4,00090000,",true,true);
 
             Console.WriteLine("\n!---    Robot Move To Specified Position ----!");
-            robotScript.Execute("$,1,08,MTCH,C04,01,R,1,R,00000000,00000000,00000000,",true,true);
+            robotScript.Execute("$,1,08,MTCH,C04,01,R,1,R,00000000,00000000,00000000,", true, true);
 
             Console.WriteLine("\n!---    Robot Move To Specified Position ----!");
-            robotScript.Execute("$,1,09,MTCH,C01,01,L,1,B,",true,true);
+            robotScript.Execute("$,1,09,MTCH,C01,01,L,1,B,", true, true);
 
             Console.WriteLine("\n!---    Robot Move Axis To Specified Position ----!");
-            robotScript.Execute("$,1,10,MABS,H,1,C,-0000300,",true,true);
+            robotScript.Execute("$,1,10,MABS,H,1,C,-0000300,", true, true);
 
             Console.WriteLine("\n!---    Robot Move Axis To Specified Relative Position ----!");
-            robotScript.Execute("$,1,11,MREL,H,1,C,-0000300,",true,true);
+            robotScript.Execute("$,1,11,MREL,H,1,C,-0000300,", true, true);
 
             Console.WriteLine("\n!---    Robot Wafer Map ----!");
-            robotScript.Execute("$,1,12,MMAP,C01,02,A,0,",true,true);
-            robotScript.Execute("$,1,12,MMAP,C01,00,A,0,", true, true);
-            robotScript.Execute("$,1,12,MMAP,C02,00,A,0,", true, true);
-            robotScript.Execute("$,1,12,MMAP,S02,00,A,0,", true, true);
-            robotScript.Execute("$,1,12,MMAP,P01,00,A,0,", true, true);
+            robotScript.Execute("$,1,12,MMAP,C01,02,A,0,", true, true);
 
             Console.WriteLine("\n!---    Robot Mapping Calibration ----!");
-            robotScript.Execute("$,1,13,MMCA,C01,L,0,",true,true);
+            robotScript.Execute("$,1,13,MMCA,C01,L,0,", true, true);
 
+            Console.WriteLine("\n!---    Robot Servo Control ----!");
+            robotScript.Execute("$,1,01,CSRV,1,", true, true);
+
+            Console.WriteLine("\n!---    Robot Reference commands ----!");
+            robotScript.Execute("$,1,13,RMAP,C01,00,", true, true);
 
             Console.WriteLine("\n\n ###########    PRE ALIGNER #############");
 
             Console.WriteLine("\n!----    Pre-Aligner Initialization    -----!");
-            preAlignerScript.Execute("$,2,01,INIT,1,1,G,",true,true);
+            preAlignerScript.Execute("$,2,01,INIT,1,1,G,", true, true);
 
             Console.WriteLine("\n!----    Pre-Aligner Wafer Align    -----!");
-            preAlignerScript.Execute("$,2,02,MALN,0,00000010,",true,true);
+            preAlignerScript.Execute("$,2,02,MALN,0,00000010,", true, true);
 
             Console.WriteLine("\n!----    Pre-Aligner Alignment calibration    -----!");
-            preAlignerScript.Execute("$,2,03,MACA,0,",true,true);
+            preAlignerScript.Execute("$,2,03,MACA,0,", true, true);
         }
 
         static void RunScriptWithSeqNumAndWithoutChecksum()

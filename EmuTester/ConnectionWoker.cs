@@ -120,13 +120,13 @@ namespace EmuTester
             {
                 foreach (var read in buffer)
                 {
-                    if ((read == '$' || read == '!' || read == '<' || read == '?') && !startDetected)
+                    if ((read == '$' || read == '!' || read == '>' || read == '?') && !startDetected)
                     {
                         startDetected = true;
                         messageTimer.Start();
                         commandString.Append(read);
                     }
-                    else if ((read == '$' || read == '!' || read == '<' || read == '?') && startDetected)
+                    else if ((read == '$' || read == '!' || read == '>' || read == '?') && startDetected)
                     {
                         commandString = new StringBuilder();
                         messageTimer.Stop();
