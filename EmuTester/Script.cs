@@ -171,7 +171,20 @@ namespace EmuTester
             int unit = Convert.ToInt32(cmdstr.Substring(2, 1));
             var fields = cmdstr.Split(',');
             var cmdName = string.Empty;
-            if (fields[5].Length == 6)
+            
+            if (cmdstr.StartsWith(">"))//Event
+            {
+                Program.ConsoleQ.Add($"Received Event         : {cmdstr}");
+                return;
+            }
+            else if (cmdstr.StartsWith("?"))//Error
+            {
+                Program.ConsoleQ.Add($"Received Error         : {cmdstr}");
+                _scriptState = ScriptState.ACKNSent;
+                _signalStateChange.Set();
+                return;
+            }
+            else if (fields[5].Length == 6)
             {
                 cmdName = fields[4];
             }
@@ -211,14 +224,7 @@ namespace EmuTester
                 //_worker.Write(command, () => { _scriptState = ScriptState.ACKNSent; });
                 Write(command, () => { _scriptState = ScriptState.ACKNSent; });
             }
-            else if (cmdstr.StartsWith(">"))//Event
-            {
-                Program.ConsoleQ.Add($"Received Event         : {cmdstr}");
-            }
-            else if (cmdstr.StartsWith("?"))//Error
-            {
-
-            }
+            
             else
             {
                 //Console.WriteLine($"Received Response         : {cmdstr}");

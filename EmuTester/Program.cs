@@ -45,10 +45,9 @@ namespace EmuTester
                 //RunScripts(true, false);
                 RunScripts(true, true);
                 //RunScriptWithSeqNumAndWithChecksumWithReferenceMessages();
-                //    Console.WriteLine("Press A to Repeat or ENTER to quit");
-                //    key = Console.ReadKey().Key;
-                //} while (key == ConsoleKey.A);
-            } while (true);
+                Console.WriteLine("Press A to Repeat or ENTER to quit");
+                key = Console.ReadKey().Key;
+            } while (key == ConsoleKey.A);
 
             robotLoop.Stop();
             preAlignLoop.Stop();
@@ -360,26 +359,26 @@ namespace EmuTester
             Console.WriteLine("!---    Robot Initialization ----!");
             robotScript.Execute("$,1,01,INIT,1,1,G,", true, true);
 
-            //Console.WriteLine("!---    Robot Initialization ----!");
-            //robotScript.Execute("$,1,02,INIT,1,1,G,",true,true);
+            Console.WriteLine("!---    Robot Initialization ----!");
+            robotScript.Execute("$,1,02,INIT,1,1,G,", true, true);
 
             Console.WriteLine("\n!----    Pre-Aligner Initialization    -----!");
             preAlignerScript.Execute("$,2,01,INIT,1,1,G,", true, true);
 
             Console.WriteLine("\n!---    Robot Put ----!");
-            robotScript.Execute("$,1,03,MTRS,P,P01,00,R,2,P4,00090000,",true,true);
+            robotScript.Execute("$,1,03,MTRS,P,P01,00,R,2,P4,00090000,", true, true);
 
             Console.WriteLine("\n!---    Robot Get ----!");
-            robotScript.Execute("$,1,04,MTRS,G,S01,00,L,2,G4,00000250,-0000300,00000000,00000000,",true,true);
+            robotScript.Execute("$,1,04,MTRS,G,S01,00,L,2,G4,00000250,-0000300,00000000,00000000,", true, true);
 
             Console.WriteLine("\n!---    Robot Get ----!");
-            robotScript.Execute("$,1,05,MTRS,G,P01,00,L,1,G1,",true,true);
+            robotScript.Execute("$,1,05,MTRS,G,P01,00,L,1,G1,", true, true);
 
             Console.WriteLine("\n!---    Robot Motion Transfer Point ----!");
-            robotScript.Execute("$,1,06,MPNT,G3,",true,true);
+            robotScript.Execute("$,1,06,MPNT,G3,", true, true);
 
             Console.WriteLine("\n!---    Robot Continued Transfer ----!");
-            robotScript.Execute("$,1,07,MCTR,P,P01,00,L,1,P4,00090000,",true,true);
+            robotScript.Execute("$,1,07,MCTR,P,P01,00,L,1,P4,00090000,", true, true);
 
             Console.WriteLine("\n!---    Robot Move To Specified Position ----!");
             robotScript.Execute("$,1,08,MTCH,C04,01,R,1,R,00000000,00000000,00000000,", true, true);
@@ -399,11 +398,71 @@ namespace EmuTester
             Console.WriteLine("\n!---    Robot Mapping Calibration ----!");
             robotScript.Execute("$,1,13,MMCA,C01,L,0,", true, true);
 
-            Console.WriteLine("\n!---    Robot Servo Control ----!");
+
+
+            Console.WriteLine("\n!---    Robot Deceleration/Stop ----!");
+
+            robotScript.Execute("$,1,01,CSTP,H,", true, true);
+
+            robotScript.Execute("$,1,01,CRSM,H,", true, true);
+
             robotScript.Execute("$,1,01,CSRV,1,", true, true);
 
-            Console.WriteLine("\n!---    Robot Reference commands ----!");
+            robotScript.Execute("$,1,01,CCLR,E,", true, true);
+
+            robotScript.Execute("$,1,01,CSOL,F,0,0,", true, true);
+
+
+
+            Console.WriteLine("\n!---    Robot Setting Commands ----!");
+
+            robotScript.Execute("$,1,01,SSPD,3,L,G,00000999,", true, true);
+
+            robotScript.Execute("$,1,01,SSLV,3,", true, true);
+
+            robotScript.Execute("$,1,01,SPOS,V,N,C01,00,L,1,", true, true);
+
+            robotScript.Execute("$,1,01,SABS,V,N,C01,L,1,00000100,00000200,00000300,00000400,00000500,", true, true);
+
+            robotScript.Execute("$,1,01,SAPS,V,N,C01,L,1,00000100,00000200,00000300,", true, true);
+
+            robotScript.Execute("$,1,01,SPDL,V,C01,L,F,", true, true);
+
+            robotScript.Execute("$,1,01,SPSV,C01,L,F,", true, true);
+
+            robotScript.Execute("$,1,01,SPLD,C01,F,F,", true, true);
+
+            robotScript.Execute("$,1,01,SSTR,N,C01,71,00000900,", true, true);
+
+            robotScript.Execute("$,1,01,SPRM,CRU,1111,000000000900,", true, true);
+
+            robotScript.Execute("$,1,01,SMSK,ABCD,", true, true);
+
+            robotScript.Execute("$,1,01,SSTD,G,", true, true);
+
+            robotScript.Execute("$,1,01,STRM,0,0,0,0,0,", true, true);
+
+            Console.WriteLine("\n!----    Robot Reference   -----!");
+
+            robotScript.Execute("$,1,01,RSPD,0,L,R,", true, true);
+            robotScript.Execute("$,1,01,RSLV,", true, true);
+            robotScript.Execute("$,1,01,RPOS,R,", true, true);
+            robotScript.Execute("$,1,01,RSTP,V,C01,01,L,1,R,", true, true);
+            robotScript.Execute("$,1,01,RSTR,V,C01,00,", true, true);
+            robotScript.Execute("$,1,01,RPRM,CIU,0001,", true, true);
+            robotScript.Execute("$,1,01,RSTS,", true, true);
+            robotScript.Execute("$,1,01,RERR,V,000,", true, true);
+            robotScript.Execute("$,1,01,RMSK,", true, true);
+            robotScript.Execute("$,1,01,RVER,", true, true);
             robotScript.Execute("$,1,13,RMAP,C01,00,", true, true);
+            robotScript.Execute("$,1,13,RMPD,C01,", true, true);
+            robotScript.Execute("$,1,13,RMCA,C01,", true, true);
+            robotScript.Execute("$,1,13,RALN,", true, true);
+            robotScript.Execute("$,1,13,RACA,", true, true);
+            robotScript.Execute("$,1,13,RCCD,", true, true);
+            robotScript.Execute("$,1,13,RTRM,", true, true);
+            robotScript.Execute("$,1,13,RAWC,", true, true);
+            robotScript.Execute("$,1,13,RLOG,00,", true, true);
 
             Console.WriteLine("\n\n ###########    PRE ALIGNER #############");
 
@@ -415,6 +474,48 @@ namespace EmuTester
 
             Console.WriteLine("\n!----    Pre-Aligner Alignment calibration    -----!");
             preAlignerScript.Execute("$,2,03,MACA,0,", true, true);
+
+            Console.WriteLine("\n!---    PreAligner Deceleration/Stop ----!");
+            preAlignerScript.Execute("$,2,01,CSTP,H,", true, true);
+
+            preAlignerScript.Execute("$,2,01,CRSM,H,", true, true);
+
+            preAlignerScript.Execute("$,2,01,CSRV,1,", true, true);
+
+            preAlignerScript.Execute("$,2,01,CCLR,E,", true, true);
+
+            preAlignerScript.Execute("$,2,01,CSOL,F,0,0,", true, true);
+
+            Console.WriteLine("\n!---    PreAligner Settings ----!");
+
+            preAlignerScript.Execute("$,2,01,SMSK,ABCD,", true, true);
+            preAlignerScript.Execute("$,1,01,SMSK,ABCD,", true, true);
+            preAlignerScript.Execute("$,2,01,STRM,0,0,0,0,0,", true, true);
+
+
+            preAlignerScript.Execute("$,2,01,SPRM,CRU,1111,000000000900,", true, true);
+
+            preAlignerScript.Execute("$,2,01,SSLV,3,", true, true);
+
+            preAlignerScript.Execute("$,2,01,SSPD,3,L,G,00000999,", true, true);
+
+            preAlignerScript.Execute("$,2,01,SSTD,G,", true, true);
+
+            Console.WriteLine("\n!---    PreAligner Reference ----!");
+
+            preAlignerScript.Execute("$,2,01,RSPD,0,L,S,", true, true);
+            preAlignerScript.Execute("$,2,01,RSLV,", true, true);
+            preAlignerScript.Execute("$,2,01,RPOS,R,", true, true);
+            preAlignerScript.Execute("$,2,01,RPRM,CIU,0001,", true, true);
+            preAlignerScript.Execute("$,2,01,RSTS,", true, true);
+            preAlignerScript.Execute("$,2,01,RERR,V,000,", true, true);
+            preAlignerScript.Execute("$,2,01,RMSK,", true, true);
+            preAlignerScript.Execute("$,2,01,RVER,", true, true);
+            preAlignerScript.Execute("$,2,13,RALN,", true, true);
+            preAlignerScript.Execute("$,2,13,RACA,", true, true);
+            preAlignerScript.Execute("$,2,13,RCCD,", true, true);
+            preAlignerScript.Execute("$,2,13,RLOG,00,", true, true);
+
         }
 
         static void RunScriptWithSeqNumAndWithoutChecksum()
