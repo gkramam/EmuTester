@@ -25,6 +25,8 @@ namespace EmuTester
         {
             _signalStateChange = new ManualResetEvent(false);
             _worker = worker;
+            _worker.PostReadCallback = (x) => { IncomingQ.Add(x); };
+
             retryTimer = new System.Timers.Timer(10000);
             retryTimer.Enabled = false;
             retryTimer.AutoReset = false;
@@ -68,8 +70,6 @@ namespace EmuTester
         public void ExecuteControlInterLeavedWithReferenceCommands(string controlMsg,List<string> referenceMsgList)
         {
             isInterLeaved = true;
-            _worker.PostReadCallback = (x) => { IncomingQ.Add(x); };
-
 
             Write(ComposeFinalString(controlMsg), () => { _scriptState = ScriptState.CommandSent; });
             referenceMsgList.ForEach(m => { Write(ComposeFinalString(m),()=> { }); });
@@ -136,7 +136,6 @@ namespace EmuTester
             else
                 command = $"{message.Remove(message.Length-1)}\r";
 
-            _worker.PostReadCallback = (x)=> { IncomingQ.Add(x); };
             //_worker.Write(command, ()=> { _scriptState = ScriptState.CommandSent; });
             Write(command, () => { _scriptState = ScriptState.CommandSent; });
 

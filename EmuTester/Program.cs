@@ -15,6 +15,7 @@ namespace EmuTester
     {
         public static BlockingCollection<string> ConsoleQ = new BlockingCollection<string>();
         static ConnectionWoker robotLoop, preAlignLoop;
+        static LoadPortConnectionWorker loadPortLoop;
 
         static void Main(string[] args)
         {
@@ -31,11 +32,14 @@ namespace EmuTester
                 }
             });
 
-            robotLoop = new ConnectionWoker(50100);
-            robotLoop.Start();
+            //robotLoop = new ConnectionWoker(50100);
+            //robotLoop.Start();
 
-            preAlignLoop = new ConnectionWoker(50101);
-            preAlignLoop.Start();
+            //preAlignLoop = new ConnectionWoker(50101);
+            //preAlignLoop.Start();
+
+            loadPortLoop = new LoadPortConnectionWorker(5001);
+            loadPortLoop.Start();
 
             ConsoleKey key = ConsoleKey.Escape;
             do
@@ -43,16 +47,90 @@ namespace EmuTester
                 //RunScripts(false,false);
                 //RunScripts(false, true);
                 //RunScripts(true, false);
-                RunScripts(true, true);
+                //RunScripts(true, true);
+                RunLoadPortScript();
                 //RunScriptWithSeqNumAndWithChecksumWithReferenceMessages();
                 Console.WriteLine("Press A to Repeat or ENTER to quit");
                 key = Console.ReadKey().Key;
             } while (key == ConsoleKey.A);
+            //} while (true);
 
-            robotLoop.Stop();
-            preAlignLoop.Stop();
+            //robotLoop.Stop();
+            //preAlignLoop.Stop();
+            loadPortLoop.Stop();
         }
 
+        static void RunLoadPortScript()
+        {
+            LoadPortScript lpScript = new LoadPortScript(loadPortLoop);
+
+            //lpScript.Execute("s00SET:INITL;\r\n");
+            //lpScript.Execute("s00MOV:ORGSH;\r\n");
+            //lpScript.Execute("s00MOV:CLOAD;\r\n");
+            //lpScript.Execute("s00MOV:CLDMP;\r\n");
+            //lpScript.Execute("s00MOV:CLDDK;\r\n");
+            //lpScript.Execute("s00MOV:CLDYD;\r\n");
+            //lpScript.Execute("s00MOV:CLDOP;\r\n");
+            //lpScript.Execute("s00MOV:CLMPO;\r\n");
+            //lpScript.Execute("s00MOV:MAPDO;\r\n");
+            //lpScript.Execute("s00MOV:REMAP;\r\n");
+
+            ////unloadCommands
+            //lpScript.Execute("s00MOV:CULOD;\r\n");
+            //lpScript.Execute("s00MOV:CULDK;\r\n");
+            //lpScript.Execute("s00MOV:CUDCL;\r\n");
+            //lpScript.Execute("s00MOV:CUDNC;\r\n");
+            //lpScript.Execute("s00MOV:CULYD;\r\n");
+            //lpScript.Execute("s00MOV:CULFC;\r\n");
+            //lpScript.Execute("s00MOV:CUDMP;\r\n");
+
+            List<string> commands = new List<string>() {
+            "s00SET:INITL;\r\n",
+            "s00GET:STATE;\r\n",
+            "s00MOV:ORGSH;\r\n",
+            "s00GET:STATE;\r\n",
+            "s00MOV:CLOAD;\r\n",
+            "s00GET:STATE;\r\n",
+            "s00MOV:CLDMP;\r\n",
+            "s00GET:STATE;\r\n",
+            "s00MOV:CLDDK;\r\n",
+            "s00GET:STATE;\r\n",
+            "s00MOV:CLDYD;\r\n",
+            "s00GET:STATE;\r\n",
+            "s00MOV:CLDOP;\r\n",
+            "s00GET:STATE;\r\n",
+            "s00MOV:CLMPO;\r\n",
+            "s00GET:STATE;\r\n",
+            "s00MOV:MAPDO;\r\n",
+            "s00GET:STATE;\r\n",
+            "s00MOV:REMAP;\r\n",
+            "s00GET:MAPRD;\r\n",
+            "s00GET:MAPDT;\r\n",
+            "s00GET:STATE;\r\n",
+            "s00MOV:CULOD;\r\n",
+            "s00GET:STATE;\r\n",
+            "s00MOV:CULDK;\r\n",
+            "s00GET:STATE;\r\n",
+            "s00MOV:CUDCL;\r\n",
+            "s00GET:STATE;\r\n",
+            "s00MOV:CUDNC;\r\n",
+            "s00GET:STATE;\r\n",
+            "s00MOV:CULYD;\r\n",
+            "s00GET:STATE;\r\n",
+            "s00MOV:CULFC;\r\n",
+            "s00GET:STATE;\r\n",
+            "s00MOV:CUDMP;\r\n",
+            "s00GET:STATE;\r\n"};
+
+            for(int i=0; i<commands.Count;i=i+2)
+            {
+                lpScript.Execute(commands[i],i==0);
+                lpScript.Execute(commands[i + 1]);
+                Console.WriteLine("Press Enter to Execute Next Command");
+                Console.ReadLine();
+            }
+
+        }
         static void ProcessXML()
         {
             XmlDocument doc = new XmlDocument();

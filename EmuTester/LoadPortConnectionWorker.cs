@@ -7,12 +7,10 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
-using Timer = System.Timers.Timer;
 
 namespace EmuTester
 {
-    public class ConnectionWoker
+    public class LoadPortConnectionWorker
     {
         TcpClient client;
         Action<string> _postReadCallback = null;
@@ -22,7 +20,7 @@ namespace EmuTester
 
         BlockingCollection<string> writeQ = new System.Collections.Concurrent.BlockingCollection<string>();
 
-        Timer messageTimer;
+        System.Timers.Timer messageTimer;
         StringBuilder commandString = new StringBuilder();
         bool startDetected = false;
 
@@ -31,20 +29,21 @@ namespace EmuTester
         {
             _stop = true;
         }
-        public ConnectionWoker(int port) {
+        public LoadPortConnectionWorker(int port)
+        {
 
             client = new TcpClient();
             client.Connect("localhost", port);
             client.NoDelay = true;
 
-            messageTimer = new Timer(20);
+            messageTimer = new System.Timers.Timer(20);
             messageTimer.Enabled = false;
             messageTimer.AutoReset = false;
-            messageTimer.Elapsed += MessageTimer_Elapsed;
+            messageTimer.Elapsed += MessageTimer_Elapsed1;
 
         }
 
-        private void MessageTimer_Elapsed(object sender, ElapsedEventArgs e)
+        private void MessageTimer_Elapsed1(object sender, System.Timers.ElapsedEventArgs e)
         {
             //messageTimer.Stop();
             //commandString = new StringBuilder();
@@ -86,7 +85,7 @@ namespace EmuTester
             {
                 //while(!_stop)
                 {
-                    foreach(var msg in writeQ.GetConsumingEnumerable())
+                    foreach (var msg in writeQ.GetConsumingEnumerable())
                     {
                         if (client.Client.Poll(-1, SelectMode.SelectWrite))
                         {
@@ -120,14 +119,14 @@ namespace EmuTester
             {
                 foreach (var read in buffer)
                 {
-                    if ((read == '$' || read == '!' || read == '>' || read == '?') && !startDetected)
+                    if (read == 's' && !startDetected)
                     {
                         commandString = new StringBuilder();
                         startDetected = true;
                         messageTimer.Start();
                         commandString.Append(read);
                     }
-                    else if ((read == '$' || read == '!' || read == '>' || read == '?') && startDetected)
+                    else if (read == 's' && startDetected)
                     {
                         commandString = new StringBuilder();
                         messageTimer.Stop();
@@ -157,23 +156,23 @@ namespace EmuTester
                     }
                     else
                     {
-                        messageTimer.Stop();
-                        commandString.Append(read);
-                        messageTimer.Start();
+                        if (startDetected)
+                        {
+                            messageTimer.Stop();
+                            commandString.Append(read);
+                            messageTimer.Start();
+                        }
                     }
                 }
             }
         }
 
-        public void Write(string message,Action postWriteCallback)
+        public void Write(string message, Action postWriteCallback)
         {
             //Console.WriteLine($"Sending Message           : {message}");
             Program.ConsoleQ.Add($"Sending Message           : {message}");
             writeQ.Add(message);
             postWriteCallback();
         }
-
-        
-
     }
 }
