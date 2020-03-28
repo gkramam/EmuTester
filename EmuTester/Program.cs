@@ -15,7 +15,7 @@ namespace EmuTester
     {
         public static BlockingCollection<string> ConsoleQ = new BlockingCollection<string>();
         static ConnectionWoker robotLoop, preAlignLoop;
-        static LoadPortConnectionWorker loadPortLoop;
+        static List<LoadPortConnectionWorker> loadPortLoop;
 
         static void Main(string[] args)
         {
@@ -37,9 +37,12 @@ namespace EmuTester
 
             //preAlignLoop = new ConnectionWoker(50101);
             //preAlignLoop.Start();
-
-            loadPortLoop = new LoadPortConnectionWorker(5001);
-            loadPortLoop.Start();
+            loadPortLoop = new List<LoadPortConnectionWorker>();
+            loadPortLoop.Add(new LoadPortConnectionWorker(5001));
+            loadPortLoop.Add(new LoadPortConnectionWorker(5002));
+            loadPortLoop.Add(new LoadPortConnectionWorker(5003));
+            loadPortLoop.Add(new LoadPortConnectionWorker(5004));
+            loadPortLoop.ForEach(l=>l.Start());
 
             ConsoleKey key = ConsoleKey.Escape;
             do
@@ -57,12 +60,13 @@ namespace EmuTester
 
             //robotLoop.Stop();
             //preAlignLoop.Stop();
-            loadPortLoop.Stop();
+            loadPortLoop.ForEach(l => l.Stop());
         }
 
         static void RunLoadPortScript()
         {
-            LoadPortScript lpScript = new LoadPortScript(loadPortLoop);
+            List<LoadPortScript> lpScripts = new List<LoadPortScript>();
+            loadPortLoop.ForEach(l => lpScripts.Add(new LoadPortScript(l)));
 
             //lpScript.Execute("s00SET:INITL;\r\n");
             //lpScript.Execute("s00MOV:ORGSH;\r\n");
@@ -124,10 +128,22 @@ namespace EmuTester
 
             for(int i=0; i<commands.Count;i=i+2)
             {
-                lpScript.Execute(commands[i],i==0);
-                lpScript.Execute(commands[i + 1]);
+                List<Task> round = new List<Task>();
+
+                lpScripts.ForEach(l => {
+                    round.Add(
+                                Task.Run(() =>
+                                {
+                                    l.Execute(commands[i], i == 0);
+                                    l.Execute(commands[i + 1]);
+                                }));
+                });
+
+                Task.WaitAll(round.ToArray());
+                
                 Console.WriteLine("Press Enter to Execute Next Command");
                 Console.ReadLine();
+
             }
 
         }
